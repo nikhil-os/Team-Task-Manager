@@ -8,6 +8,8 @@ export default function Projects() {
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
@@ -24,15 +26,29 @@ export default function Projects() {
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+    if (isAdmin) {
+      api.get('/auth/users').then(res => setAllUsers(res.data)).catch(console.error);
+    }
+  }, [isAdmin]);
+
+  const toggleMember = (userId) => {
+    if (selectedMembers.includes(userId)) {
+      setSelectedMembers(selectedMembers.filter(id => id !== userId));
+    } else {
+      setSelectedMembers([...selectedMembers, userId]);
+    }
+  };
 
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/projects', { name, description });
+      // Ensure the Admin who creates it is always a member
+      const finalMembers = [...new Set([...selectedMembers, user.id])];
+      await api.post('/projects', { name, description, members: finalMembers });
       setShowModal(false);
       setName('');
       setDescription('');
+      setSelectedMembers([]);
       fetchProjects();
     } catch (err) {
       console.error(err);
@@ -62,6 +78,21 @@ export default function Projects() {
               <div className="form-group">
                 <label>Description</label>
                 <textarea className="form-control" value={description} onChange={e => setDescription(e.target.value)} rows={3}></textarea>
+              </div>
+              <div className="form-group">
+                <label>Assign Members</label>
+                <div style={{ maxHeight: '150px', overflowY: 'auto', background: 'rgba(15, 23, 42, 0.6)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '8px' }}>
+                  {allUsers.map(u => (
+                    <div key={u._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedMembers.includes(u._id)} 
+                        onChange={() => toggleMember(u._id)} 
+                      />
+                      <span style={{ fontSize: '0.9rem' }}>{u.name} ({u.role})</span>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
                 <button type="button" className="btn" style={{ background: 'transparent', color: 'var(--text-primary)' }} onClick={() => setShowModal(false)}>Cancel</button>

@@ -10,6 +10,7 @@ export default function Tasks() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('To Do');
+  const [assignedTo, setAssignedTo] = useState('');
   const [projectDetails, setProjectDetails] = useState(null);
 
   const userStr = localStorage.getItem('user');
@@ -36,10 +37,11 @@ export default function Tasks() {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/tasks', { title, description, projectId, status });
+      await api.post('/tasks', { title, description, projectId, status, assignedTo: assignedTo || undefined });
       setShowModal(false);
       setTitle('');
       setDescription('');
+      setAssignedTo('');
       fetchTasks();
     } catch (err) {
       console.error(err);
@@ -98,6 +100,15 @@ export default function Tasks() {
                   <option value="Done">Done</option>
                 </select>
               </div>
+              <div className="form-group">
+                <label>Assign To</label>
+                <select className="form-control" value={assignedTo} onChange={e => setAssignedTo(e.target.value)}>
+                  <option value="">Unassigned</option>
+                  {projectDetails?.members?.map(m => (
+                    <option key={m._id} value={m._id}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
                 <button type="button" className="btn" style={{ background: 'transparent', color: 'var(--text-primary)' }} onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Save</button>
@@ -120,7 +131,12 @@ export default function Tasks() {
               {tasks.filter(t => t.status === colStatus).map(task => (
                 <div key={task._id} className="glass-card" style={{ padding: '16px' }}>
                   <h5 style={{ margin: '0 0 8px 0', fontSize: '1rem' }}>{task.title}</h5>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>{task.description}</p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>{task.description}</p>
+                  {task.assignedTo && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--primary)', marginBottom: '12px' }}>
+                      Assigned: {task.assignedTo.name}
+                    </div>
+                  )}
                   
                   <select 
                     className="form-control" 
