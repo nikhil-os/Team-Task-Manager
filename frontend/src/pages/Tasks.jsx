@@ -138,16 +138,20 @@ export default function Tasks() {
                     </div>
                   )}
                   
-                  <select 
-                    className="form-control" 
-                    style={{ padding: '6px', fontSize: '0.8rem' }}
-                    value={task.status}
-                    onChange={(e) => updateStatus(task._id, e.target.value)}
-                  >
-                    <option value="To Do">To Do</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Done">Done</option>
-                  </select>
+                  {(isAdmin || (task.assignedTo && task.assignedTo._id === user.id)) ? (
+                    <select 
+                      className="form-control" 
+                      style={{ padding: '6px', fontSize: '0.8rem' }}
+                      value={task.status}
+                      onChange={(e) => updateStatus(task._id, e.target.value)}
+                    >
+                      <option value="To Do">To Do</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Done">Done</option>
+                    </select>
+                  ) : (
+                    <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Status: {getStatusBadge(task.status)}</div>
+                  )}
                 </div>
               ))}
             </div>

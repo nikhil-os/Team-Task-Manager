@@ -42,7 +42,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     if (!task) return res.status(404).json({ error: 'Task not found' });
 
     if (req.user.role !== 'Admin') {
-      if (task.assignedTo.toString() !== req.user.id) {
+      if (!task.assignedTo || task.assignedTo.toString() !== req.user.id) {
         return res.status(403).json({ error: 'Not authorized to update this task' });
       }
       // Members can only update status
