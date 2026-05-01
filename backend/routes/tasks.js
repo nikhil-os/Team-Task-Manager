@@ -26,10 +26,19 @@ router.get('/project/:projectId', authMiddleware, async (req, res) => {
   }
 });
 
-// Create a task (Admin only)
-router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
+// Create a task (Admin or Project Member)
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const { title, description, projectId, assignedTo, status, dueDate } = req.body;
+    
+    // Verify user is part of the project if they aren't admin
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+    const memberIds = project.members.map(m => m.toString());
+    if (req.user.role !== 'Admin' && !memberIds.includes(req.user.id)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
     const task = new Task({ title, description, projectId, assignedTo: assignedTo || undefined, status, dueDate });
     await task.save();
     const populated = await task.populate('assignedTo', 'name email');

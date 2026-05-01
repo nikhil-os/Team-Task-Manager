@@ -124,11 +124,9 @@ export default function Tasks() {
             {tasks.length} task{tasks.length !== 1 ? 's' : ''} · {tasks.filter(t => t.status === 'Done').length} completed
           </p>
         </div>
-        {isAdmin && (
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-            <Plus size={16} /> Add Task
-          </button>
-        )}
+        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+          <Plus size={16} /> Add Task
+        </button>
       </div>
 
       {/* Create Task Modal */}
