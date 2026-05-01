@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api';
-import { Plus, ArrowLeft, Trash2, Calendar, User } from 'lucide-react';
+import { Plus, ArrowLeft, Trash2, Calendar, RefreshCw } from 'lucide-react';
 
 export default function Tasks() {
   const { id: projectId } = useParams();
@@ -14,6 +14,7 @@ export default function Tasks() {
   const [dueDate, setDueDate] = useState('');
   const [projectDetails, setProjectDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(null);
 
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
@@ -59,11 +60,14 @@ export default function Tasks() {
   };
 
   const updateStatus = async (taskId, newStatus) => {
+    setUpdating(taskId);
     try {
       await api.put(`/tasks/${taskId}`, { status: newStatus });
-      fetchTasks();
+      await fetchTasks();
     } catch (err) {
       alert(err.response?.data?.error || 'Could not update status');
+    } finally {
+      setUpdating(null);
     }
   };
 
@@ -85,22 +89,7 @@ export default function Tasks() {
   };
 
   const isOverdue = (date) => date && new Date(date) < new Date();
-
-  // Can this user change the status of this task?
-  const canUpdateTask = (task) => {
-    if (isAdmin) return true;
-    // Member can update if the task is assigned to them
-    const assignedId = task.assignedTo?._id || task.assignedTo;
-    return assignedId === user?.id;
-  };
-
   const getInitials = (name) => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-
-  const columns = [
-    { key: 'To Do', color: '#94a3b8', dotColor: 'rgba(148,163,184,0.4)' },
-    { key: 'In Progress', color: 'var(--warning)', dotColor: 'var(--warning-bg)' },
-    { key: 'Done', color: 'var(--success)', dotColor: 'var(--success-bg)' }
-  ];
 
   if (loading) return (
     <div className="loading-page">
@@ -108,6 +97,108 @@ export default function Tasks() {
       <span>Loading tasks...</span>
     </div>
   );
+
+  // ───────────────────────── MEMBER VIEW ─────────────────────────
+  // Members see a flat list of THEIR assigned tasks with a prominent status update control
+  if (!isAdmin) {
+    return (
+      <div className="slide-up">
+        <Link to="/projects" style={{ color: 'var(--text-secondary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', marginBottom: '16px' }}>
+          <ArrowLeft size={16} /> Back to Projects
+        </Link>
+
+        <div className="mb-3">
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
+            {projectDetails?.name || 'Project'}
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
+            Your assigned tasks · {tasks.length} task{tasks.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+
+        {tasks.length === 0 ? (
+          <div className="glass-card text-center" style={{ padding: '48px 24px' }}>
+            <RefreshCw size={40} style={{ color: 'var(--text-muted)', marginBottom: '12px' }} />
+            <h3 style={{ fontWeight: 600, marginBottom: '6px' }}>No tasks assigned to you yet</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              The Admin has not assigned any tasks to you in this project yet. Check back later.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }} className="stagger">
+            {tasks.map(task => (
+              <div key={task._id} className="glass-card" style={{ padding: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+                  {/* Left: Task info */}
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '6px' }}>{task.title}</h3>
+                    {task.description && (
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '10px', lineHeight: '1.5' }}>{task.description}</p>
+                    )}
+                    <div className="task-meta">
+                      <span className="task-meta-item">
+                        <div className="avatar" style={{ width: '20px', height: '20px', fontSize: '0.55rem' }}>
+                          {getInitials(task.assignedTo?.name || user?.name)}
+                        </div>
+                        Assigned to you
+                      </span>
+                      {task.dueDate && (
+                        <span className="task-meta-item" style={{ color: isOverdue(task.dueDate) && task.status !== 'Done' ? 'var(--danger)' : 'var(--text-muted)' }}>
+                          <Calendar size={12} />
+                          Due: {new Date(task.dueDate).toLocaleDateString()}
+                          {isOverdue(task.dueDate) && task.status !== 'Done' && (
+                            <span className="badge badge-overdue" style={{ marginLeft: '4px', padding: '1px 6px', fontSize: '0.65rem' }}>OVERDUE</span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right: Status update control — ALWAYS visible for member */}
+                  <div style={{ minWidth: '180px', textAlign: 'right' }}>
+                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                      Update Status
+                    </label>
+                    <select
+                      className="status-select"
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        fontSize: '0.9rem',
+                        borderRadius: '8px',
+                        background: task.status === 'Done' ? 'var(--success-bg)' : task.status === 'In Progress' ? 'var(--warning-bg)' : 'rgba(15, 23, 42, 0.7)',
+                        borderColor: task.status === 'Done' ? 'rgba(16,185,129,0.4)' : task.status === 'In Progress' ? 'rgba(245,158,11,0.4)' : 'var(--border-color)',
+                        color: task.status === 'Done' ? 'var(--success)' : task.status === 'In Progress' ? 'var(--warning)' : 'var(--text-primary)',
+                        fontWeight: 600
+                      }}
+                      value={task.status}
+                      onChange={(e) => updateStatus(task._id, e.target.value)}
+                      disabled={updating === task._id}
+                    >
+                      <option value="To Do">📋 To Do</option>
+                      <option value="In Progress">⚡ In Progress</option>
+                      <option value="Done">✅ Done</option>
+                    </select>
+                    {updating === task._id && (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--primary-light)', marginTop: '4px', display: 'block' }}>Saving...</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ───────────────────────── ADMIN VIEW ─────────────────────────
+  // Admin sees the full Kanban board + can create/delete tasks
+  const columns = [
+    { key: 'To Do', color: '#94a3b8' },
+    { key: 'In Progress', color: 'var(--warning)' },
+    { key: 'Done', color: 'var(--success)' }
+  ];
 
   return (
     <div className="slide-up">
@@ -158,7 +249,7 @@ export default function Tasks() {
                 </div>
               </div>
               <div className="form-group">
-                <label>Assign To</label>
+                <label>Assign To Member</label>
                 <select className="form-control" value={assignedTo} onChange={e => setAssignedTo(e.target.value)}>
                   <option value="">Unassigned</option>
                   {projectDetails?.members?.map(m => (
@@ -175,7 +266,7 @@ export default function Tasks() {
         </div>
       )}
 
-      {/* Kanban Board */}
+      {/* Admin Kanban Board */}
       <div className="grid-3">
         {columns.map(col => {
           const colTasks = tasks.filter(t => t.status === col.key);
@@ -193,23 +284,22 @@ export default function Tasks() {
                   <div key={task._id} className="task-card">
                     <div className="flex-between" style={{ marginBottom: '6px' }}>
                       <h5>{task.title}</h5>
-                      {isAdmin && (
-                        <button onClick={() => deleteTask(task._id)} className="btn btn-sm" style={{ background: 'transparent', color: 'var(--text-muted)', padding: '4px', minWidth: 'auto' }} title="Delete task">
-                          <Trash2 size={14} />
-                        </button>
-                      )}
+                      <button onClick={() => deleteTask(task._id)} className="btn btn-sm" style={{ background: 'transparent', color: 'var(--text-muted)', padding: '4px', minWidth: 'auto' }} title="Delete task">
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                     {task.description && <p>{task.description}</p>}
 
-                    {/* Meta info */}
                     <div className="task-meta">
-                      {task.assignedTo && (
+                      {task.assignedTo ? (
                         <span className="task-meta-item">
                           <div className="avatar" style={{ width: '20px', height: '20px', fontSize: '0.55rem' }}>
                             {getInitials(task.assignedTo.name)}
                           </div>
                           {task.assignedTo.name}
                         </span>
+                      ) : (
+                        <span className="task-meta-item" style={{ color: 'var(--text-muted)' }}>Unassigned</span>
                       )}
                       {task.dueDate && (
                         <span className="task-meta-item" style={{ color: isOverdue(task.dueDate) && task.status !== 'Done' ? 'var(--danger)' : 'var(--text-muted)' }}>
@@ -222,21 +312,17 @@ export default function Tasks() {
                       )}
                     </div>
 
-                    {/* Status Dropdown — visible for Admin OR assigned member */}
-                    {canUpdateTask(task) ? (
-                      <select
-                        className="status-select"
-                        style={{ marginTop: '10px', width: '100%' }}
-                        value={task.status}
-                        onChange={(e) => updateStatus(task._id, e.target.value)}
-                      >
-                        <option value="To Do">📋 To Do</option>
-                        <option value="In Progress">⚡ In Progress</option>
-                        <option value="Done">✅ Done</option>
-                      </select>
-                    ) : (
-                      <div style={{ marginTop: '10px' }}>{getStatusBadge(task.status)}</div>
-                    )}
+                    {/* Admin can also change status */}
+                    <select
+                      className="status-select"
+                      style={{ marginTop: '10px', width: '100%' }}
+                      value={task.status}
+                      onChange={(e) => updateStatus(task._id, e.target.value)}
+                    >
+                      <option value="To Do">📋 To Do</option>
+                      <option value="In Progress">⚡ In Progress</option>
+                      <option value="Done">✅ Done</option>
+                    </select>
                   </div>
                 ))}
                 {colTasks.length === 0 && (
