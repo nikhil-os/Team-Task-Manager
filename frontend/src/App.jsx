@@ -17,37 +17,31 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        
+
         <Route path="/" element={
           <ProtectedRoute>
-            <>
-              <Navbar />
-              <div className="container mt-4 fade-in">
-                <Dashboard />
-              </div>
-            </>
+            <Navbar />
+            <div className="container page-content">
+              <Dashboard />
+            </div>
           </ProtectedRoute>
         } />
 
         <Route path="/projects" element={
           <ProtectedRoute>
-            <>
-              <Navbar />
-              <div className="container mt-4 fade-in">
-                <Projects />
-              </div>
-            </>
+            <Navbar />
+            <div className="container page-content">
+              <Projects />
+            </div>
           </ProtectedRoute>
         } />
 
         <Route path="/projects/:id/tasks" element={
           <ProtectedRoute>
-            <>
-              <Navbar />
-              <div className="container mt-4 fade-in">
-                <Tasks />
-              </div>
-            </>
+            <Navbar />
+            <div className="container page-content">
+              <Tasks />
+            </div>
           </ProtectedRoute>
         } />
       </Routes>

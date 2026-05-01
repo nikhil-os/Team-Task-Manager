@@ -12,11 +12,14 @@ router.get('/project/:projectId', authMiddleware, async (req, res) => {
     if (!project) return res.status(404).json({ error: 'Project not found' });
 
     // Check if member belongs to project or is admin
-    if (req.user.role !== 'Admin' && !project.members.includes(req.user.id)) {
+    const memberIds = project.members.map(m => m.toString());
+    if (req.user.role !== 'Admin' && !memberIds.includes(req.user.id)) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const tasks = await Task.find({ projectId: req.params.projectId }).populate('assignedTo', 'name email');
+    const tasks = await Task.find({ projectId: req.params.projectId })
+      .populate('assignedTo', 'name email')
+      .sort({ createdAt: -1 });
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
@@ -27,32 +30,44 @@ router.get('/project/:projectId', authMiddleware, async (req, res) => {
 router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { title, description, projectId, assignedTo, status, dueDate } = req.body;
-    const task = new Task({ title, description, projectId, assignedTo, status, dueDate });
+    const task = new Task({ title, description, projectId, assignedTo: assignedTo || undefined, status, dueDate });
     await task.save();
-    res.status(201).json(task);
+    const populated = await task.populate('assignedTo', 'name email');
+    res.status(201).json(populated);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Update a task (Members can update status of assigned tasks, Admin can update anything)
+// Update a task — Members can update status of tasks assigned to them
+// Admin can update anything
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ error: 'Task not found' });
 
     if (req.user.role !== 'Admin') {
-      if (!task.assignedTo || task.assignedTo.toString() !== req.user.id) {
-        return res.status(403).json({ error: 'Not authorized to update this task' });
+      // Members can only update the status of tasks assigned to them
+      const assignedId = task.assignedTo ? task.assignedTo.toString() : null;
+      if (assignedId !== req.user.id) {
+        return res.status(403).json({ error: 'You can only update tasks assigned to you' });
       }
-      // Members can only update status
-      task.status = req.body.status || task.status;
+      // Members can only change status
+      if (req.body.status) {
+        task.status = req.body.status;
+      }
     } else {
-      Object.assign(task, req.body);
+      // Admin can update everything
+      if (req.body.title !== undefined) task.title = req.body.title;
+      if (req.body.description !== undefined) task.description = req.body.description;
+      if (req.body.status !== undefined) task.status = req.body.status;
+      if (req.body.assignedTo !== undefined) task.assignedTo = req.body.assignedTo || undefined;
+      if (req.body.dueDate !== undefined) task.dueDate = req.body.dueDate;
     }
 
     await task.save();
-    res.json(task);
+    const populated = await task.populate('assignedTo', 'name email');
+    res.json(populated);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }

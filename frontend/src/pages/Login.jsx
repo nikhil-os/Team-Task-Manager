@@ -1,44 +1,59 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
+import { LogIn } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
       const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
+      setError(err.response?.data?.error || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '20px' }}>
-      <div className="glass-card fade-in" style={{ width: '100%', maxWidth: '400px' }}>
-        <h2 className="text-center mb-3">Welcome Back</h2>
-        {error && <div style={{ color: 'var(--danger)', marginBottom: '16px', textAlign: 'center', fontSize: '0.9rem' }}>{error}</div>}
+    <div className="auth-page">
+      <div className="auth-card glass-card slide-up">
+        <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+          <span className="nav-brand" style={{ fontSize: '1.4rem' }}>TaskFlow</span>
+        </div>
+        <h2 className="auth-title text-center">Welcome back</h2>
+        <p className="auth-subtitle text-center">Sign in to manage your projects</p>
+
+        {error && <div className="error-msg">{error}</div>}
+
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label>Email</label>
-            <input type="email" className="form-control" value={email} onChange={e => setEmail(e.target.value)} required />
+            <label htmlFor="login-email">Email</label>
+            <input id="login-email" type="email" className="form-control" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
           </div>
           <div className="form-group">
-            <label>Password</label>
-            <input type="password" className="form-control" value={password} onChange={e => setPassword(e.target.value)} required />
+            <label htmlFor="login-password">Password</label>
+            <input id="login-password" type="password" className="form-control" placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} required />
           </div>
-          <button type="submit" className="btn btn-primary btn-block mt-2">Login</button>
+          <button type="submit" className="btn btn-primary btn-block mt-1" disabled={loading}>
+            <LogIn size={16} /> {loading ? 'Signing in...' : 'Sign In'}
+          </button>
         </form>
-        <p className="text-center mt-3" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-          Don't have an account? <Link to="/signup" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Sign up</Link>
-        </p>
+
+        <div className="auth-footer">
+          Don't have an account? <Link to="/signup">Create one</Link>
+        </div>
       </div>
     </div>
   );
