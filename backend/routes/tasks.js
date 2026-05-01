@@ -74,10 +74,9 @@ router.put('/:id', authMiddleware, async (req, res) => {
         task.status = req.body.status;
       }
     } else {
-      // Admin can update everything
+      // Admin can update everything EXCEPT status
       if (req.body.title !== undefined) task.title = req.body.title;
       if (req.body.description !== undefined) task.description = req.body.description;
-      if (req.body.status !== undefined) task.status = req.body.status;
       if (req.body.assignedTo !== undefined) task.assignedTo = req.body.assignedTo || undefined;
       if (req.body.dueDate !== undefined) task.dueDate = req.body.dueDate;
     }

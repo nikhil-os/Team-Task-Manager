@@ -1,26 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --c1: #232526;
-  --c2: #282a2c;
-  --c3: #2d2f31;
-  --c4: #333537;
-  --c5: #393b3d;
-  --c6: #3e4042;
-  --c7: #414345;
-  --c8: #4a4c4e;
-  --bg: #1e2022;
-  --card: #282a2c;
-  --card-hover: #2e3032;
-  --border: rgba(255,255,255,0.07);
-  --border-active: rgba(255,255,255,0.18);
-  --text: #f0f0f0;
-  --text-dim: #b0b3b8;
-  --text-muted: #787b80;
-  --accent: #c8cad0;
-  --accent-dim: #9a9da3;
-  --shadow: 0 2px 12px rgba(0,0,0,0.35);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.45);
+  --c1: #134E5E;
+  --c2: #225e64;
+  --c3: #326d6b;
+  --c4: #417e72;
+  --c5: #518e78;
+  --c6: #619f7e;
+  --c7: #71B280;
+  --c8: #81c28b;
+  --bg: #0d3b47;
+  --card: #185565;
+  --card-hover: #1e6070;
+  --border: rgba(255,255,255,0.15);
+  --border-active: rgba(255,255,255,0.3);
+  --text: #ffffff;
+  --text-dim: #e0e5e0;
+  --text-muted: #b0c0bc;
+  --accent: #a8e6b3;
+  --accent-dim: #71B280;
+  --shadow: 0 4px 16px rgba(0,0,0,0.25);
+  --shadow-lg: 0 10px 32px rgba(0,0,0,0.35);
   --radius: 10px;
   --radius-lg: 14px;
   --transition: all 0.2s ease;
@@ -31,7 +31,7 @@
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: var(--bg);
+  background: linear-gradient(135deg, var(--c1) 0%, var(--c7) 100%);
   color: var(--text);
   min-height: 100vh;
 }

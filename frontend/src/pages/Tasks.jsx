@@ -261,12 +261,7 @@ export default function Tasks() {
                         </span>
                       )}
                     </div>
-                    <select className="status-select" style={{ marginTop: '9px', width: '100%' }} value={task.status}
-                      onChange={(e) => updateStatus(task._id, e.target.value)}>
-                      <option value="To Do">📋 To Do</option>
-                      <option value="In Progress">⚡ In Progress</option>
-                      <option value="Done">✅ Done</option>
-                    </select>
+                    {/* Admins can view but not edit status here */}
                   </div>
                 ))}
                 {colTasks.length === 0 && (
