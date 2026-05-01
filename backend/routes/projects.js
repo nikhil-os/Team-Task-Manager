@@ -4,7 +4,6 @@ const { authMiddleware, adminMiddleware } = require('../middleware/authMiddlewar
 
 const router = express.Router();
 
-// Get all projects for the user
 router.get('/', authMiddleware, async (req, res) => {
   try {
     let projects;
@@ -19,7 +18,6 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Create a project (Admin only)
 router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { name, description, members } = req.body;
@@ -36,7 +34,6 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
-// Update a project
 router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });

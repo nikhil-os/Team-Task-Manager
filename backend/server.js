@@ -22,7 +22,10 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
-// Serve frontend
+/* 
+ * This is the magic part where Express serves our compiled React frontend.
+ * So we get to host the entire app from this single file on Railway!
+ */
 const path = require('path');
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 app.get(/(.*)/, (req, res) => {

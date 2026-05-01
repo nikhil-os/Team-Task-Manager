@@ -50,7 +50,10 @@ router.get('/', authMiddleware, async (req, res) => {
       }
     });
 
-    // Build project summaries for the "Projects" card drill-down
+    /* 
+     * We pack these project summaries nicely so the frontend 
+     * drill-down menu has exactly what it needs without extra DB calls!
+     */
     const projectSummaries = projects.map(p => {
       const pTasks = allTasks.filter(t => t.projectId?._id?.toString() === p._id.toString());
       return {
@@ -61,7 +64,6 @@ router.get('/', authMiddleware, async (req, res) => {
       };
     });
 
-    // Build tasks-by-status detail for the "Total Tasks" card
     const tasksByStatusDetail = {};
     ['To Do', 'In Progress', 'Done'].forEach(status => {
       tasksByStatusDetail[status] = allTasks

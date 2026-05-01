@@ -47,7 +47,6 @@ router.get('/users', async (req, res) => {
   }
 });
 
-// Get current user profile
 router.get('/profile', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
@@ -58,7 +57,6 @@ router.get('/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// Update current user profile
 router.put('/profile', authMiddleware, async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -77,7 +75,10 @@ router.put('/profile', authMiddleware, async (req, res) => {
 
     await user.save();
 
-    // Return updated user info and new token (in case role/name changed)
+    /* 
+     * Since they updated their profile, we need to mint a brand new token for them 
+     * with their fresh details so the frontend stays in sync!
+     */
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.json({
       token,

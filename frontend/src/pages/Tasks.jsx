@@ -78,7 +78,11 @@ export default function Tasks() {
 
   if (loading) return <div className="loading-page"><div className="spinner"></div><span>Loading tasks...</span></div>;
 
-  // ─────────── MEMBER VIEW ───────────
+  /* 
+   * This is the Member View!
+   * Members only get to see the tasks they're actually assigned to.
+   * Keeps things clean and prevents them from getting overwhelmed.
+   */
   if (!isAdmin) {
     return (
       <div className="slide-up">
@@ -155,7 +159,10 @@ export default function Tasks() {
     );
   }
 
-  // ─────────── ADMIN VIEW ───────────
+  /* 
+   * And this is the Admin View!
+   * Full Kanban board, power to create, delete, and view everything.
+   */
   const columns = [
     { key: 'To Do', dot: 'var(--text-muted)' },
     { key: 'In Progress', dot: 'var(--accent-dim)' },
@@ -261,7 +268,7 @@ export default function Tasks() {
                         </span>
                       )}
                     </div>
-                    {/* Admins can view but not edit status here */}
+                    {/* Admins are just observing the status here, only members can change it! */}
                   </div>
                 ))}
                 {colTasks.length === 0 && (
