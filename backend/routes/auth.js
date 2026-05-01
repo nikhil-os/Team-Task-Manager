@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -41,6 +42,47 @@ router.get('/users', async (req, res) => {
   try {
     const users = await User.find().select('name email role');
     res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get current user profile
+router.get('/profile', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update current user profile
+router.put('/profile', authMiddleware, async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (name) user.name = name;
+    if (email) {
+      const existing = await User.findOne({ email, _id: { $ne: req.user.id } });
+      if (existing) return res.status(400).json({ error: 'Email already taken' });
+      user.email = email;
+    }
+    if (password && password.length >= 6) {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
+
+    // Return updated user info and new token (in case role/name changed)
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    res.json({
+      token,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+    });
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }

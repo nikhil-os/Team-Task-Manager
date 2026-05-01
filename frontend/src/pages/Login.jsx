@@ -20,7 +20,7 @@ export default function Login() {
       localStorage.setItem('user', JSON.stringify(res.data.user));
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.');
+      setError(err.response?.data?.error || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -28,32 +28,27 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card glass-card slide-up">
-        <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-          <span className="nav-brand" style={{ fontSize: '1.4rem' }}>TaskFlow</span>
+      <div className="auth-card card slide-up">
+        <div style={{ textAlign: 'center', marginBottom: '6px' }}>
+          <span className="nav-brand" style={{ fontSize: '1.3rem' }}>TaskFlow</span>
         </div>
         <h2 className="auth-title text-center">Welcome back</h2>
         <p className="auth-subtitle text-center">Sign in to manage your projects</p>
-
         {error && <div className="error-msg">{error}</div>}
-
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label htmlFor="login-email">Email</label>
-            <input id="login-email" type="email" className="form-control" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
+            <label>Email</label>
+            <input type="email" className="form-control" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
           </div>
           <div className="form-group">
-            <label htmlFor="login-password">Password</label>
-            <input id="login-password" type="password" className="form-control" placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} required />
+            <label>Password</label>
+            <input type="password" className="form-control" placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} required />
           </div>
           <button type="submit" className="btn btn-primary btn-block mt-1" disabled={loading}>
-            <LogIn size={16} /> {loading ? 'Signing in...' : 'Sign In'}
+            <LogIn size={15} /> {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-
-        <div className="auth-footer">
-          Don't have an account? <Link to="/signup">Create one</Link>
-        </div>
+        <div className="auth-footer">Don't have an account? <Link to="/signup">Create one</Link></div>
       </div>
     </div>
   );

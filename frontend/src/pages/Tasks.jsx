@@ -24,11 +24,8 @@ export default function Tasks() {
     try {
       const res = await api.get(`/tasks/project/${projectId}`);
       setTasks(res.data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => {
@@ -48,15 +45,9 @@ export default function Tasks() {
         dueDate: dueDate || undefined
       });
       setShowModal(false);
-      setTitle('');
-      setDescription('');
-      setAssignedTo('');
-      setDueDate('');
-      setStatus('To Do');
+      setTitle(''); setDescription(''); setAssignedTo(''); setDueDate(''); setStatus('To Do');
       fetchTasks();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const updateStatus = async (taskId, newStatus) => {
@@ -66,19 +57,13 @@ export default function Tasks() {
       await fetchTasks();
     } catch (err) {
       alert(err.response?.data?.error || 'Could not update status');
-    } finally {
-      setUpdating(null);
-    }
+    } finally { setUpdating(null); }
   };
 
   const deleteTask = async (taskId) => {
     if (!window.confirm('Delete this task?')) return;
-    try {
-      await api.delete(`/tasks/${taskId}`);
-      fetchTasks();
-    } catch (err) {
-      console.error(err);
-    }
+    try { await api.delete(`/tasks/${taskId}`); fetchTasks(); }
+    catch (err) { console.error(err); }
   };
 
   const getStatusBadge = (s) => {
@@ -88,88 +73,68 @@ export default function Tasks() {
     return null;
   };
 
-  const isOverdue = (date) => date && new Date(date) < new Date();
-  const getInitials = (name) => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const isOverdue = (d) => d && new Date(d) < new Date();
+  const getInitials = (n) => n?.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
-  if (loading) return (
-    <div className="loading-page">
-      <div className="spinner"></div>
-      <span>Loading tasks...</span>
-    </div>
-  );
+  if (loading) return <div className="loading-page"><div className="spinner"></div><span>Loading tasks...</span></div>;
 
-  // ───────────────────────── MEMBER VIEW ─────────────────────────
-  // Members see a flat list of THEIR assigned tasks with a prominent status update control
+  // ─────────── MEMBER VIEW ───────────
   if (!isAdmin) {
     return (
       <div className="slide-up">
-        <Link to="/projects" style={{ color: 'var(--text-secondary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', marginBottom: '16px' }}>
-          <ArrowLeft size={16} /> Back to Projects
+        <Link to="/projects" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.85rem', marginBottom: '14px' }}>
+          <ArrowLeft size={15} /> Back to Projects
         </Link>
-
         <div className="mb-3">
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-            {projectDetails?.name || 'Project'}
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{projectDetails?.name || 'Project'}</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '3px' }}>
             Your assigned tasks · {tasks.length} task{tasks.length !== 1 ? 's' : ''}
           </p>
         </div>
 
         {tasks.length === 0 ? (
-          <div className="glass-card text-center" style={{ padding: '48px 24px' }}>
-            <RefreshCw size={40} style={{ color: 'var(--text-muted)', marginBottom: '12px' }} />
-            <h3 style={{ fontWeight: 600, marginBottom: '6px' }}>No tasks assigned to you yet</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              The Admin has not assigned any tasks to you in this project yet. Check back later.
+          <div className="card text-center" style={{ padding: '44px 20px' }}>
+            <RefreshCw size={36} style={{ color: 'var(--text-muted)', marginBottom: '10px' }} />
+            <h3 style={{ fontWeight: 600, marginBottom: '5px' }}>No tasks assigned to you yet</h3>
+            <p style={{ color: 'var(--text-dim)', fontSize: '0.88rem' }}>
+              The Admin has not assigned any tasks to you in this project. Check back later.
             </p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }} className="stagger">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {tasks.map(task => (
-              <div key={task._id} className="glass-card" style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
-                  {/* Left: Task info */}
+              <div key={task._id} className="card" style={{ padding: '18px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px' }}>
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '6px' }}>{task.title}</h3>
-                    {task.description && (
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '10px', lineHeight: '1.5' }}>{task.description}</p>
-                    )}
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '5px' }}>{task.title}</h3>
+                    {task.description && <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginBottom: '9px', lineHeight: '1.5' }}>{task.description}</p>}
                     <div className="task-meta">
                       <span className="task-meta-item">
-                        <div className="avatar" style={{ width: '20px', height: '20px', fontSize: '0.55rem' }}>
+                        <div className="avatar" style={{ width: '18px', height: '18px', fontSize: '0.5rem' }}>
                           {getInitials(task.assignedTo?.name || user?.name)}
                         </div>
                         Assigned to you
                       </span>
                       {task.dueDate && (
-                        <span className="task-meta-item" style={{ color: isOverdue(task.dueDate) && task.status !== 'Done' ? 'var(--danger)' : 'var(--text-muted)' }}>
-                          <Calendar size={12} />
+                        <span className="task-meta-item" style={{ color: isOverdue(task.dueDate) && task.status !== 'Done' ? '#d4a0a0' : 'var(--text-muted)' }}>
+                          <Calendar size={11} />
                           Due: {new Date(task.dueDate).toLocaleDateString()}
-                          {isOverdue(task.dueDate) && task.status !== 'Done' && (
-                            <span className="badge badge-overdue" style={{ marginLeft: '4px', padding: '1px 6px', fontSize: '0.65rem' }}>OVERDUE</span>
-                          )}
+                          {isOverdue(task.dueDate) && task.status !== 'Done' && <span className="badge badge-overdue" style={{ marginLeft: '4px', padding: '1px 6px', fontSize: '0.62rem' }}>OVERDUE</span>}
                         </span>
                       )}
                     </div>
                   </div>
-
-                  {/* Right: Status update control — ALWAYS visible for member */}
-                  <div style={{ minWidth: '180px', textAlign: 'right' }}>
-                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                  <div style={{ minWidth: '170px', textAlign: 'right' }}>
+                    <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: '5px' }}>
                       Update Status
                     </label>
                     <select
                       className="status-select"
                       style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        fontSize: '0.9rem',
-                        borderRadius: '8px',
-                        background: task.status === 'Done' ? 'var(--success-bg)' : task.status === 'In Progress' ? 'var(--warning-bg)' : 'rgba(15, 23, 42, 0.7)',
-                        borderColor: task.status === 'Done' ? 'rgba(16,185,129,0.4)' : task.status === 'In Progress' ? 'rgba(245,158,11,0.4)' : 'var(--border-color)',
-                        color: task.status === 'Done' ? 'var(--success)' : task.status === 'In Progress' ? 'var(--warning)' : 'var(--text-primary)',
-                        fontWeight: 600
+                        width: '100%', padding: '8px 10px', fontSize: '0.88rem',
+                        borderRadius: '7px', fontWeight: 600,
+                        background: task.status === 'Done' ? 'var(--c5)' : task.status === 'In Progress' ? 'var(--c6)' : 'var(--c3)',
+                        borderColor: task.status === 'Done' ? 'var(--border-active)' : 'var(--border)'
                       }}
                       value={task.status}
                       onChange={(e) => updateStatus(task._id, e.target.value)}
@@ -179,9 +144,7 @@ export default function Tasks() {
                       <option value="In Progress">⚡ In Progress</option>
                       <option value="Done">✅ Done</option>
                     </select>
-                    {updating === task._id && (
-                      <span style={{ fontSize: '0.75rem', color: 'var(--primary-light)', marginTop: '4px', display: 'block' }}>Saving...</span>
-                    )}
+                    {updating === task._id && <span style={{ fontSize: '0.72rem', color: 'var(--accent-dim)', marginTop: '3px', display: 'block' }}>Saving...</span>}
                   </div>
                 </div>
               </div>
@@ -192,39 +155,34 @@ export default function Tasks() {
     );
   }
 
-  // ───────────────────────── ADMIN VIEW ─────────────────────────
-  // Admin sees the full Kanban board + can create/delete tasks
+  // ─────────── ADMIN VIEW ───────────
   const columns = [
-    { key: 'To Do', color: '#94a3b8' },
-    { key: 'In Progress', color: 'var(--warning)' },
-    { key: 'Done', color: 'var(--success)' }
+    { key: 'To Do', dot: 'var(--text-muted)' },
+    { key: 'In Progress', dot: 'var(--accent-dim)' },
+    { key: 'Done', dot: 'var(--accent)' }
   ];
 
   return (
     <div className="slide-up">
-      <Link to="/projects" style={{ color: 'var(--text-secondary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', marginBottom: '16px' }}>
-        <ArrowLeft size={16} /> Back to Projects
+      <Link to="/projects" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.85rem', marginBottom: '14px' }}>
+        <ArrowLeft size={15} /> Back to Projects
       </Link>
-
       <div className="flex-between mb-3">
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-            {projectDetails?.name || 'Project Tasks'}
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{projectDetails?.name || 'Project Tasks'}</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '3px' }}>
             {tasks.length} task{tasks.length !== 1 ? 's' : ''} · {tasks.filter(t => t.status === 'Done').length} completed
           </p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          <Plus size={16} /> Add Task
+          <Plus size={15} /> Add Task
         </button>
       </div>
 
-      {/* Create Task Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
-          <div className="modal-content glass-card">
-            <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>Create New Task</h3>
+          <div className="modal-content card">
+            <h3 style={{ fontWeight: 700, marginBottom: '18px' }}>Create New Task</h3>
             <form onSubmit={handleCreate}>
               <div className="form-group">
                 <label>Title</label>
@@ -257,7 +215,7 @@ export default function Tasks() {
                   ))}
                 </select>
               </div>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <div style={{ display: 'flex', gap: '9px', justifyContent: 'flex-end', marginTop: '18px' }}>
                 <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Create Task</button>
               </div>
@@ -266,59 +224,45 @@ export default function Tasks() {
         </div>
       )}
 
-      {/* Admin Kanban Board */}
       <div className="grid-3">
         {columns.map(col => {
           const colTasks = tasks.filter(t => t.status === col.key);
           return (
-            <div key={col.key} className="kanban-column">
-              <div className="kanban-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: col.color }}></div>
+            <div key={col.key} className="kanban-col">
+              <div className="kanban-head">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: col.dot }}></div>
                   <h4>{col.key}</h4>
                 </div>
-                <span className="kanban-count">{colTasks.length}</span>
+                <span className="kanban-cnt">{colTasks.length}</span>
               </div>
               <div className="kanban-cards">
                 {colTasks.map(task => (
                   <div key={task._id} className="task-card">
-                    <div className="flex-between" style={{ marginBottom: '6px' }}>
+                    <div className="flex-between" style={{ marginBottom: '5px' }}>
                       <h5>{task.title}</h5>
-                      <button onClick={() => deleteTask(task._id)} className="btn btn-sm" style={{ background: 'transparent', color: 'var(--text-muted)', padding: '4px', minWidth: 'auto' }} title="Delete task">
-                        <Trash2 size={14} />
+                      <button onClick={() => deleteTask(task._id)} className="btn btn-sm" style={{ background: 'transparent', color: 'var(--text-muted)', padding: '3px', minWidth: 'auto' }} title="Delete">
+                        <Trash2 size={13} />
                       </button>
                     </div>
                     {task.description && <p>{task.description}</p>}
-
                     <div className="task-meta">
                       {task.assignedTo ? (
                         <span className="task-meta-item">
-                          <div className="avatar" style={{ width: '20px', height: '20px', fontSize: '0.55rem' }}>
-                            {getInitials(task.assignedTo.name)}
-                          </div>
+                          <div className="avatar" style={{ width: '18px', height: '18px', fontSize: '0.5rem' }}>{getInitials(task.assignedTo.name)}</div>
                           {task.assignedTo.name}
                         </span>
-                      ) : (
-                        <span className="task-meta-item" style={{ color: 'var(--text-muted)' }}>Unassigned</span>
-                      )}
+                      ) : <span className="task-meta-item" style={{ color: 'var(--text-muted)' }}>Unassigned</span>}
                       {task.dueDate && (
-                        <span className="task-meta-item" style={{ color: isOverdue(task.dueDate) && task.status !== 'Done' ? 'var(--danger)' : 'var(--text-muted)' }}>
-                          <Calendar size={12} />
+                        <span className="task-meta-item" style={{ color: isOverdue(task.dueDate) && task.status !== 'Done' ? '#d4a0a0' : 'var(--text-muted)' }}>
+                          <Calendar size={11} />
                           {new Date(task.dueDate).toLocaleDateString()}
-                          {isOverdue(task.dueDate) && task.status !== 'Done' && (
-                            <span className="badge badge-overdue" style={{ marginLeft: '4px', padding: '1px 6px', fontSize: '0.65rem' }}>OVERDUE</span>
-                          )}
+                          {isOverdue(task.dueDate) && task.status !== 'Done' && <span className="badge badge-overdue" style={{ marginLeft: '3px', padding: '1px 5px', fontSize: '0.6rem' }}>OVERDUE</span>}
                         </span>
                       )}
                     </div>
-
-                    {/* Admin can also change status */}
-                    <select
-                      className="status-select"
-                      style={{ marginTop: '10px', width: '100%' }}
-                      value={task.status}
-                      onChange={(e) => updateStatus(task._id, e.target.value)}
-                    >
+                    <select className="status-select" style={{ marginTop: '9px', width: '100%' }} value={task.status}
+                      onChange={(e) => updateStatus(task._id, e.target.value)}>
                       <option value="To Do">📋 To Do</option>
                       <option value="In Progress">⚡ In Progress</option>
                       <option value="Done">✅ Done</option>
@@ -326,9 +270,7 @@ export default function Tasks() {
                   </div>
                 ))}
                 {colTasks.length === 0 && (
-                  <div style={{ textAlign: 'center', padding: '24px 8px', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    No tasks
-                  </div>
+                  <div style={{ textAlign: 'center', padding: '22px 8px', color: 'var(--text-muted)', fontSize: '0.8rem' }}>No tasks</div>
                 )}
               </div>
             </div>
